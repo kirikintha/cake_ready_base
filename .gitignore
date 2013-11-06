@@ -1,0 +1,78 @@
+#Main Ignore
+/lib/Cake/Console/Templates/skel/tmp/
+.DS_Store
+/tags
+*.komodoproject
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Packages
+*.7z
+*.dmg
+*.gz
+!/install/*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs
+*.log
+
+# documentation - should be generated as-needed in integration environment
+app/webroot/docs/doxygen
+debug.txt
+
+#Local config values, except for default.
+/app/Config/Local/*
+!/app/Config/Local/default.php
+
+#Location config values, except for default.
+/app/Config/Location/*
+!/app/Config/Location/default.php
+
+#Temp Files
+
+#cache
+/app/tmp/cache/cake_toolbar_cache*
+/app/tmp/cache/default/*
+!/app/tmp/cache/default/empty
+/app/tmp/cache/permanent/*
+!/app/tmp/cache/permanent/empty
+/app/tmp/cache/persistent/*
+!/app/tmp/cache/persistent/empty
+/app/tmp/cache/cores/*
+!/app/tmp/cache/cores/empty
+/app/tmp/cache/models/*
+!/app/tmp/cache/models/empty
+/app/tmp/twig/*
+/app/tmp/twig/cache/*
+
+#misc
+/app/tmp/config/*
+!/app/tmp/config/empty
+/app/tmp/logs/*
+!/app/tmp/logs/empty
+/app/tmp/session/*
+!/app/tmp/session/empty
+/app/tmp/sessions/*
+!/app/tmp/sessions/empty
+/app/tmp/tests/*
+!/app/tmp/tests/empty
+/app/tmp/files/*
+
+#uploaded files
+/app/webroot/files/*
+!/app/webroot/empty
+
+#backup directories
+/backups/*
+!/backups/empty
+
+#End ignore file - make sure there is no trailing whitespace!
