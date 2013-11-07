@@ -1,0 +1,16 @@
+/*
+    Document   : styles
+    Created on : Nov 6, 2013, 8:37:23 PM
+    Author     : paulthuntsberger
+    Description:
+        This is a basic stylesheet.
+        @todo - look at less mixins.
+*/
+
+@media (min-width: 992px) {
+  div#main { padding-top: 70px; }
+}
+
+div.php-extension {
+  margin-right: 5px;
+}

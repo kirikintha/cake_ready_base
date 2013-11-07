@@ -64,7 +64,8 @@ class PagesController extends AppController {
 		if (!empty($path[$count - 1])) {
 			$title_for_layout = Inflector::humanize($path[$count - 1]);
 		}
-		$this->set(compact('page', 'subpage', 'title_for_layout'));
+    $lang = Configure::read('Config.language');
+		$this->set(compact('page', 'subpage', 'title_for_layout', 'lang'));
 
 		try {
 			$this->render(implode('/', $path));

@@ -21,89 +21,177 @@
  * @link          http://cakephp.org CakePHP(tm) Project
  * @package       app.Config
  * @since         CakePHP(tm) v 0.10.8.2117
- * @license       http://www.opensource.org/licenses/mit-license.php MIT License
+ * @license       MIT License (http://www.opensource.org/licenses/mit-license.php)
  */
 
-// Setup a 'default' cache configuration for use in the application.
-Cache::config('default', array('engine' => 'File'));
+App::uses('PhpReader', 'Configure');
 
-/**
- * The settings below can be used to set additional paths to models, views and controllers.
- *
- * App::build(array(
- *     'Model'                     => array('/path/to/models/', '/next/path/to/models/'),
- *     'Model/Behavior'            => array('/path/to/behaviors/', '/next/path/to/behaviors/'),
- *     'Model/Datasource'          => array('/path/to/datasources/', '/next/path/to/datasources/'),
- *     'Model/Datasource/Database' => array('/path/to/databases/', '/next/path/to/database/'),
- *     'Model/Datasource/Session'  => array('/path/to/sessions/', '/next/path/to/sessions/'),
- *     'Controller'                => array('/path/to/controllers/', '/next/path/to/controllers/'),
- *     'Controller/Component'      => array('/path/to/components/', '/next/path/to/components/'),
- *     'Controller/Component/Auth' => array('/path/to/auths/', '/next/path/to/auths/'),
- *     'Controller/Component/Acl'  => array('/path/to/acls/', '/next/path/to/acls/'),
- *     'View'                      => array('/path/to/views/', '/next/path/to/views/'),
- *     'View/Helper'               => array('/path/to/helpers/', '/next/path/to/helpers/'),
- *     'Console'                   => array('/path/to/consoles/', '/next/path/to/consoles/'),
- *     'Console/Command'           => array('/path/to/commands/', '/next/path/to/commands/'),
- *     'Console/Command/Task'      => array('/path/to/tasks/', '/next/path/to/tasks/'),
- *     'Lib'                       => array('/path/to/libs/', '/next/path/to/libs/'),
- *     'Locale'                    => array('/path/to/locales/', '/next/path/to/locales/'),
- *     'Vendor'                    => array('/path/to/vendors/', '/next/path/to/vendors/'),
- *     'Plugin'                    => array('/path/to/plugins/', '/next/path/to/plugins/'),
- * ));
- *
- */
+//Local configuration Directory.
+$directory = __DIR__.'/Local/';
+$name = 'default';
+$ext = '.php';
+//Look for default file.
+$default_settings = $directory.$name.$ext;
+//See if we need to throw an error.
+try {
+  //check if file exists.
+  if(!file_exists($default_settings)) {
+    //throw exception if email is not valid
+    throw new Exception('Could not find any configuration files, please
+      make a configuration file under Config/Local/ that matches '.$default_settings);
+  }
+}
+catch (Exception $e) {
+  echo $e->getMessage();
+  exit();
+}
 
 /**
- * Custom Inflector rules can be set to correctly pluralize or singularize table, model, controller names or whatever other
- * string is passed to the inflection functions
- *
- * Inflector::rules('singular', array('rules' => array(), 'irregular' => array(), 'uninflected' => array()));
- * Inflector::rules('plural', array('rules' => array(), 'irregular' => array(), 'uninflected' => array()));
- *
+ * Local Config Loader.
+ * @internal - Look to default.php or develop.config to manage changes in your
+ * local or production environment.
  */
 
-/**
- * Plugins need to be loaded manually, you can either load them one by one or all of them in a single call
- * Uncomment one of the lines below, as you need. Make sure you read the documentation on CakePlugin to use more
- * advanced ways of loading plugins
- *
- * CakePlugin::loadAll(); // Loads all plugins at once
- * CakePlugin::load('DebugKit'); //Loads a single plugin named DebugKit
- *
- */
+//Look for default or dev config file. Dev file will *always* overtake the default
+// file.
+$regex = sprintf("(default|develop)\%s", $ext);
+//Scan the settings directory.
+$folder = new Folder($directory);
+$files = $folder->find($regex);
+$local_config = array();
+if (!empty($files)) {
+  foreach ($files as $file) {
+      $hash = str_replace($ext, '', $file);
+      $local_config[$hash] = array(
+        'path' => $directory.$file,
+      );
+  }
+}
+//Create a config reader for our files, that follow our syntax.
+$reader = new PhpReader($directory);
+Configure::config('LocalSettings', $reader);
+//Always load the default settings, then merge the additional settings, so we
+//  can set a master default, and have total control over the configuration options.
+//  Read config files from app/Config/Local/(default|develop)\.config .
+foreach ($local_config as $key => $value) {
+  Configure::load($key, 'LocalSettings', TRUE);
+}
 
 /**
- * You can attach event listeners to the request lifecycle as Dispatcher Filter. By default CakePHP bundles two filters:
- *
- * - AssetDispatcher filter will serve your asset files (css, images, js, etc) from your themes and plugins
- * - CacheDispatcher filter will read the Cache.check configure variable and try to serve cached content generated from controllers
- *
- * Feel free to remove or add filters as you see fit for your application. A few examples:
- *
- * Configure::write('Dispatcher.filters', array(
- *		'MyCacheFilter', //  will use MyCacheFilter class from the Routing/Filter package in your app.
- *		'MyPlugin.MyFilter', // will use MyFilter class from the Routing/Filter package in MyPlugin plugin.
- * 		array('callable' => $aFunction, 'on' => 'before', 'priority' => 9), // A valid PHP callback type to be called on beforeDispatch
- *		array('callable' => $anotherMethod, 'on' => 'after'), // A valid PHP callback type to be called on afterDispatch
- *
- * ));
+ * If you are on PHP 5.3 uncomment this line and correct your server timezone
+ * to fix the date & time related errors.
  */
-Configure::write('Dispatcher.filters', array(
-	'AssetDispatcher',
-	'CacheDispatcher'
+date_default_timezone_set(Configure::read('LocalConfig.Location.timezone'));
+
+/**
+ * Cache Engine Configuration
+ */
+
+// Prefix each application on the same server with a different string, to avoid Memcache and APC conflicts.
+$default_duration = Configure::read('LocalConfig.Cache.default_duration');
+$perm_duration    = Configure::read('LocalConfig.Cache.permanent_duration');
+$prefix           = Configure::read('Cache.prefix');
+$engine           = Configure::read('Cache.engine');
+//If we do not have an engine, or we do not have a tested engine,
+//  then we need to not allow the bootstrap to continue.
+$allowed_engines = array('File', 'Apc', 'Memcache');
+try {
+  //check if
+  if(!in_array($engine, $allowed_engines)) {
+    //throw exception if email is not valid
+    throw new Exception('Could not find a valid caching engine, or no caching
+      engine found. Please enable at least one caching engine');
+  }
+}
+catch (Exception $e) {
+  echo $e->getMessage();
+  exit();
+}
+
+//Look for development specs, invalidates the cache very quickly
+if (Configure::read('debug') > 0) {
+  $perm_duration    =
+	$default_duration = Configure::read('LocalConfig.Cache.development_duration');
+}
+
+/**
+ * Configure the cache used for general framework caching.  Path information,
+ * object listings, and translation cache files are stored with this configuration.
+ */
+Cache::config('_cake_core_', array(
+  'engine' => 'File',
+  'prefix' => $prefix . 'cake_core_',
+  'path' => CACHE . 'cores' . DS,
+  'serialize' => TRUE,
+  'duration' => $default_duration,
+  'mask' => 0666,
 ));
 
 /**
- * Configures default file logging options
- */
-App::uses('CakeLog', 'Log');
-CakeLog::config('debug', array(
-	'engine' => 'File',
-	'types' => array('notice', 'info', 'debug'),
-	'file' => 'debug',
+  * Configure the cache for model and datasource caches.  This cache configuration
+  * is used to store schema descriptions, and table listings in connections.
+  */
+Cache::config('_cake_model_', array(
+  'engine' => 'File',
+  'prefix' => $prefix . 'cake_model_',
+  'path' => CACHE . 'models' . DS,
+  'serialize' => TRUE,
+  'duration' => $default_duration,
+  'mask' => 0666,
 ));
-CakeLog::config('error', array(
-	'engine' => 'File',
-	'types' => array('warning', 'error', 'critical', 'alert', 'emergency'),
-	'file' => 'error',
+
+/**
+ * Specific app caches here
+ */
+if ($engine == 'Memcache') {
+  //Look for config.
+  $servers     = Configure::read('LocalConfig.Cache.memcache_servers');
+  $probability = Configure::read('LocalConfig.Cache.memcache_probability');
+  $persistent  = Configure::read('LocalConfig.Cache.memcache_persistent');
+  $compress    = Configure::read('LocalConfig.Cache.memcache_compress');
+
+	// if the config says memcache, that's what we're using
+	Cache::config('default', array( // default - not sure this is used
+		'engine' => 'Memcache',
+		'servers' => $servers,
+		'probability'=> $probability,
+		'persistent' => $persistent,
+		'compress' => $compress,
+		'groups' => array('default'),
+		'duration' => $default_duration,
+	));
+
+	Cache::config('permanent', array(
+		'engine' => 'Memcache',
+		'servers' => $servers,
+		'probability'=> $probability,
+		'persistent' => $persistent,
+		'compress' => $compress,
+		'groups' => array('permanent'),
+		'duration' => $perm_duration,
+	));
+} else {
+	//File config, APC config.
+	Cache::config('default', array(
+		'engine' => $engine,
+		'path' => CACHE . 'default' . DS,
+		'serialize' => ($engine === 'File'),
+		'groups' => array('default'),
+		'duration' => $default_duration,
+	));
+
+	Cache::config('permanent', array(
+		'engine' => $engine,
+		'path' => CACHE . 'permanent' . DS,
+		'serialize' => ($engine === 'File'),
+		'groups' => array('permanent'),
+		'duration' => $perm_duration,
+	));
+}
+
+/**
+ * Load Global Plug-ins.
+ */
+CakePlugin::loadAll(array(
+  array('bootstrap' => true),
 ));
