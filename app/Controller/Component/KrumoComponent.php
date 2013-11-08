@@ -1,7 +1,14 @@
 <?php
 /**
  * @file KrumoComponent.php
- *  This replaces debug with krumo.
+ *  Krumo is an optional debugging component, which allows you to smartly look at
+ *  deeply nested objects or arrays. This is *not* a replacement for pr() or debug kit.
+ *  We add this in here to give you a way to create a "breakpoint" easily, and to also
+ *  view very large and complex objects and arrays in a more human readable form.
+ *  Methods:
+ *  kpr() : Krumo "print" - this outputs with the Krumo wrappers.
+ *  kbr() : Krumo "breakpoint" - this is the same as kpr, but adds and exit to halt
+ *          execution of the process.
  */
 App::uses('Component', 'Controller');
 

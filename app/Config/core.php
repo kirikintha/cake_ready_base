@@ -52,7 +52,7 @@ Configure::write('Security', array(
 Configure::write('Cache', array(
   //Changing prefixes may be advisable in load balanced environments.
   'prefix' => 'default_',
-  'engine' => 'Memcache',
+  'engine' => 'File',
   /**
    * @internal - These options are disabled by default.
    * 'disable' => TRUE,

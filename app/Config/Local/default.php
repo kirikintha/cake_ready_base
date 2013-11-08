@@ -10,6 +10,13 @@ $config = array(
     'language' => 'en',
   ),
   /**
+   * Cache engine is set to File by default. You can set to:
+   * File OR Memcache OR APC. If you set to
+   */
+//   'Cache' => array(
+//    'engine' => 'Memcache|Apc|File'
+//   ),
+  /**
    * @internal - LocalConfig is the namespace for variables you want to protect
    * outside of the global config scope, and Cake Internals.
    * This is for production use. If you need to create a development environment,
@@ -25,11 +32,12 @@ $config = array(
       'default_duration' => '+1 day',
       'permanent_duration' => '+999 days',
       'development_duration' => '+1 day',
-      'memcache_servers' => array('127.0.0.1:11211'),
-      'memcache_default_server' => '127.0.0.1:11211',
-      'memcache_persistent' => TRUE,
-      'memcache_compress' => FALSE,
-      'memcache_probability' => 100,
+      //If you are using memcahce server, set your memcache variables here.
+//      'memcache_servers' => array('127.0.0.1:11211'),
+//      'memcache_default_server' => '127.0.0.1:11211',
+//      'memcache_persistent' => TRUE,
+//      'memcache_compress' => FALSE,
+//      'memcache_probability' => 100,
     ),
     //Database Configuration.
     'DataSource' => array(
